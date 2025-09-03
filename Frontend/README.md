@@ -1,4 +1,4 @@
-# 🔐 Image Steganography (LSB with Visualization)
+# 🔐SecretPixels
 
 This project is a **web-based application** that allows you to **hide secret messages inside images** using the **Least Significant Bit (LSB)** technique.  
 It also generates **visual plots** of the LSB matrices (before and after encoding) so you can see how the image changes at the binary level.  
