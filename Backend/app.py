@@ -47,26 +47,23 @@ def encode():
     input_path = os.path.join(UPLOAD_FOLDER, filename)
     output_path = os.path.join(UPLOAD_FOLDER, "encoded_" + filename)
 
-    # 👇 unique plot filename using timestamp
-    plot_filename = f"lsb_plot_{int(time.time())}.png"
-    plot_path = os.path.join(UPLOAD_FOLDER, plot_filename)
-
     image.save(input_path)
 
     analyzer = BinaryMatrixSteganography()
     analyzer.encode_text_with_matrices(input_path, message, output_path)
 
-    img = Image.open(input_path)
-    if img.mode != 'RGB':
-        img = img.convert('RGB')
+    # ✅ Save binary matrices separately
+    matrix_paths = analyzer.show_binary_matrices(
+        matrix_size=(40, 40),  # zoomed view
+        save_dir=UPLOAD_FOLDER,
+        auto_zoom=True
+    )
 
-    width, height = img.size    
-
-    analyzer.show_binary_matrices(
-        matrix_size=(width, height), save_path=plot_path)
     return jsonify({
         "encoded_image": f"/uploads/encoded_{filename}",
-        "lsb_plot": f"/uploads/{plot_filename}"
+        "original_lsb": f"/{matrix_paths['original']}",
+        "encoded_lsb": f"/{matrix_paths['encoded']}",
+        "changes_lsb": f"/{matrix_paths['changes']}"
     })
 
 
@@ -74,8 +71,6 @@ def encode():
 def decode():
     if "image" not in request.files:
         return jsonify({"error": "Image required"}), 400
-
-    clear_uploads()
 
     image = request.files["image"]
     filename = secure_filename(image.filename)

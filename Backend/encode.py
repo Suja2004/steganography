@@ -1,3 +1,4 @@
+import time
 from functools import partial
 import concurrent.futures
 import threading
@@ -5,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 import matplotlib
-matplotlib.use("Agg")  # ✅ Prevent GUI errors
+matplotlib.use("Agg")
 
 
 class BinaryMatrixSteganography:
@@ -99,16 +100,15 @@ class BinaryMatrixSteganography:
         matrix_size=(40, 40),
         start_row=None,
         start_col=None,
-        save_path="uploads/lsb_plot.png",
+        save_dir="uploads",
         auto_zoom=True,
     ):
-        """Save binary matrices before and after encoding as an image.
-        - auto_zoom=True → automatically focus on changed regions
-        - matrix_size → used only if no changes found or auto_zoom=False
-        """
+        """Save binary matrices separately (Original, Encoded, Changes)."""
+
+        import os
+        os.makedirs(save_dir, exist_ok=True)
 
         diff = np.abs(self.original_lsb_matrix - self.encoded_lsb_matrix)
-
         H, W = self.original_lsb_matrix.shape
 
         if auto_zoom:
@@ -116,17 +116,15 @@ class BinaryMatrixSteganography:
             if len(rows) > 0:
                 min_r, max_r = rows.min(), rows.max()
                 min_c, max_c = cols.min(), cols.max()
-                margin = 20
+                margin = 10
                 start_row = max(0, min_r - margin)
                 end_row = min(H, max_r + margin)
                 start_col = max(0, min_c - margin)
                 end_col = min(W, max_c + margin)
             else:
-                # No changes → fall back to top-left patch
                 start_row, start_col = 0, 0
                 end_row, end_col = matrix_size
         else:
-            # Manual patching
             if start_row is None:
                 start_row = 0
             if start_col is None:
@@ -143,18 +141,30 @@ class BinaryMatrixSteganography:
         )
         diff_region = np.abs(original_region - encoded_region)
 
-        # Plot
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 4))
-        ax1.imshow(original_region, cmap="gray", vmin=0, vmax=1)
-        ax1.set_title("Original LSB")
+        # Save each matrix separately
+        paths = {}
+        matrices = {
+            "original": (original_region, "gray"),
+            "encoded": (encoded_region, "gray"),
+            "changes": (diff_region, "Reds"),
+        }
 
-        ax2.imshow(encoded_region, cmap="gray", vmin=0, vmax=1)
-        ax2.set_title("Encoded LSB")
+        for name, (matrix, cmap) in matrices.items():
+            h, w = matrix.shape
+            fig_width = 8
+            fig_height = max(2, fig_width * (h / w))
 
-        ax3.imshow(diff_region, cmap="Reds", vmin=0, vmax=1)
-        ax3.set_title("Changes")
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+            ax.imshow(matrix, cmap=cmap, vmin=0, vmax=1)
+            ax.set_title(name.capitalize())
+            ax.axis("off")
 
-        plt.tight_layout()
-        plt.savefig(save_path)
-        plt.close(fig)
-        return save_path
+            # 👇 unique filename with timestamp
+            ts = int(time.time() * 1000)
+            save_path = os.path.join(save_dir, f"{name}_lsb_{ts}.png")
+
+            plt.savefig(save_path, dpi=200, bbox_inches="tight", pad_inches=0)
+            plt.close(fig)
+
+            paths[name] = save_path
+        return paths
