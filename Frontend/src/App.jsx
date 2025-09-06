@@ -10,9 +10,9 @@ import Simulation from "./components/Simulation";
 export default function App() {
   return (
     <Router>
-      <div className="h-screen w-screen p-0 m-0">
+      <div>
         <Navbar />
-        <div className="h-full flex flex-col items-center justify-center bg-gray-900 text-white p-6 pt-24">
+        <div className="flex flex-col items-center justify-center bg-gray-900 text-white">
           <div className="flex flex-col gap-6 w-full max-w-4xl">
             <Routes>
               <Route path="/" element={<Aim />} />
