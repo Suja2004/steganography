@@ -6,6 +6,7 @@ import Procedure from "./components/Procedure";
 import Assignment from "./components/Assignment";
 import Navbar from "./components/Navbar";
 import Simulation from "./components/Simulation";
+import './App.css';
 
 export default function App() {
   return (
