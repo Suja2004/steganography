@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { decodeImage } from "../api/api";
 
 export default function DecodeForm() {
   const [file, setFile] = useState(null);
@@ -10,29 +11,20 @@ export default function DecodeForm() {
       setMessage("❌ Please upload an encoded image first.");
       return;
     }
-    
+
     setLoading(true);
     setMessage("");
-    
-    const formData = new FormData();
-    formData.append("image", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/decode", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
+      const data = await decodeImage(file);
       setMessage(data.message || "❌ No hidden message found");
-    } catch (error) {
-      console.error("Error decoding:", error);
+    } catch {
       setMessage("❌ Error occurred while decoding");
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="simulation group">
       {/* Header */}
@@ -94,11 +86,10 @@ export default function DecodeForm() {
 
         {/* Results */}
         {message && (
-          <div className={`p-4 rounded-xl border transition-all duration-300 ${
-            message.includes('❌') 
-              ? 'bg-red-900/20 border-red-700/50 text-red-400' 
-              : 'bg-green-900/20 border-green-700/50 text-green-400'
-          }`}>
+          <div className={`p-4 rounded-xl border transition-all duration-300 ${message.includes('❌')
+            ? 'bg-red-900/20 border-red-700/50 text-red-400'
+            : 'bg-green-900/20 border-green-700/50 text-green-400'
+            }`}>
             <div className="flex items-start space-x-2">
               <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
